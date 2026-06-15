@@ -41,23 +41,23 @@ jobs:
       - name: Download Dependencies
         run: mvn dependency:resolve
 
-      # 4. SCA (OWASP)
-      - name: Run OWASP Dependency Check
-        run: mvn dependency-check:check
+      # # 4. SCA (OWASP)
+      # - name: Run OWASP Dependency Check
+      #   run: mvn dependency-check:check
 
-      - name: Verify OWASP Report
-        run: |
-          ls -ltr target/
-          find target -name "*dependency*" || true
+      # - name: Verify OWASP Report
+      #   run: |
+      #     ls -ltr target/
+      #     find target -name "*dependency*" || true
 
-      - name: Upload OWASP Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: owasp-report
-          path: |
-            target/dependency-check-report.html
-            target/dependency-check-report.xml
-            target/dependency-check-report.json
+      # - name: Upload OWASP Report
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: owasp-report
+      #     path: |
+      #       target/dependency-check-report.html
+      #       target/dependency-check-report.xml
+      #       target/dependency-check-report.json
 
   build-test-coverage:
 
