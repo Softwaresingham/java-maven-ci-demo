@@ -2,6 +2,7 @@ name: Java DevSecOps CI Pipeline
 
 on:
   push:
+  workflow_dispatch: 
 
 jobs:
 
