@@ -1,31 +1,39 @@
 name: Java CI Pipeline
 
 on:
-  push
+  push:
 
 jobs:
 
-  checkout-secretscan-dependencyinstall:
+  validation-and-security:
 
     runs-on: ubuntu-latest
 
     steps:
 
-      # 1. Checkout Code
+      # ==========================================
+      # 1. CHECKOUT CODE
+      # ==========================================
+
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Verify Repository Contents
       - name: Verify Checkout
         run: |
           pwd
           ls -ltr
+          tree . || true
 
-      # 2. Secret Scan
+      # ==========================================
+      # 2. SECRET SCAN
+      # ==========================================
+
       - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v2
 
-      # 3. Dependency Install
+      # ==========================================
+      # 3. DEPENDENCY INSTALL
+      # ==========================================
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -42,3 +50,24 @@ jobs:
 
       - name: Download Dependencies
         run: mvn dependency:resolve
+
+      # ==========================================
+      # 4. SCA (OWASP)
+      # ==========================================
+
+      - name: OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: "java-maven-ci-demo"
+          path: "."
+          format: "HTML"
+
+      - name: Verify OWASP Report
+        run: |
+          find . -type f | grep dependency-check || true
+
+      - name: Upload OWASP Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: owasp-report
+          path: reports/
