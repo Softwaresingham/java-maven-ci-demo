@@ -17,6 +17,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <junit.version>5.10.2</junit.version>
+        <jacoco.version>0.8.12</jacoco.version>
 
     </properties>
 
@@ -71,6 +72,46 @@
                 <artifactId>maven-surefire-plugin</artifactId>
 
                 <version>3.5.0</version>
+
+            </plugin>
+
+            <!-- JaCoCo Code Coverage -->
+
+            <plugin>
+
+                <groupId>org.jacoco</groupId>
+
+                <artifactId>jacoco-maven-plugin</artifactId>
+
+                <version>${jacoco.version}</version>
+
+                <executions>
+
+                    <execution>
+
+                        <goals>
+
+                            <goal>prepare-agent</goal>
+
+                        </goals>
+
+                    </execution>
+
+                    <execution>
+
+                        <id>report</id>
+
+                        <phase>test</phase>
+
+                        <goals>
+
+                            <goal>report</goal>
+
+                        </goals>
+
+                    </execution>
+
+                </executions>
 
             </plugin>
 

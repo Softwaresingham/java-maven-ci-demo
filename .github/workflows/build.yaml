@@ -70,3 +70,59 @@ jobs:
             target/dependency-check-report.html
             target/dependency-check-report.xml
             target/dependency-check-report.json
+    build-test-coverage:
+
+    needs: validation-and-security
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # ==========================================
+      # CHECKOUT CODE
+      # ==========================================
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # ==========================================
+      # SETUP JAVA
+      # ==========================================
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      # ==========================================
+      # 5. COMPILE
+      # ==========================================
+
+      - name: Compile Application
+        run: mvn compile
+
+      # ==========================================
+      # 6. UNIT TEST
+      # ==========================================
+
+      - name: Run Unit Tests
+        run: mvn test
+
+      # ==========================================
+      # 7. CODE COVERAGE
+      # ==========================================
+
+      - name: Generate JaCoCo Coverage Report
+        run: mvn jacoco:report
+
+      - name: Verify Coverage Report
+        run: |
+          ls -ltr target/site/jacoco/
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco/
