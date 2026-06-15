@@ -160,10 +160,6 @@ jobs:
       - name: Verify Artifact
         run: ls -ltr
 
-      - name: Rename JAR
-        run: |
-          mv *.jar login-logout-app-1.0.0.jar
-
       - name: Docker Login
         uses: docker/login-action@v3
         with:
