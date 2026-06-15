@@ -22,7 +22,6 @@ jobs:
         run: |
           pwd
           ls -ltr
-          tree . || true
 
       # ==========================================
       # 2. SECRET SCAN
@@ -39,7 +38,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: '17'
           cache: maven
 
       - name: Verify Java
@@ -55,19 +54,19 @@ jobs:
       # 4. SCA (OWASP)
       # ==========================================
 
-      - name: OWASP Dependency Check
-        uses: dependency-check/Dependency-Check_Action@main
-        with:
-          project: "java-maven-ci-demo"
-          path: "."
-          format: "HTML"
+      - name: Run OWASP Dependency Check
+        run: mvn dependency-check:check
 
       - name: Verify OWASP Report
         run: |
-          find . -type f | grep dependency-check || true
+          ls -ltr target/
+          find target -name "*dependency*" || true
 
       - name: Upload OWASP Report
         uses: actions/upload-artifact@v4
         with:
           name: owasp-report
-          path: reports/
+          path: |
+            target/dependency-check-report.html
+            target/dependency-check-report.xml
+            target/dependency-check-report.json
