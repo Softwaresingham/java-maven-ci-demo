@@ -11,10 +11,7 @@ jobs:
 
     steps:
 
-      # ==========================================
       # 1. CHECKOUT CODE
-      # ==========================================
-
       - name: Checkout Code
         uses: actions/checkout@v4
 
@@ -23,17 +20,11 @@ jobs:
           pwd
           ls -ltr
 
-      # ==========================================
       # 2. SECRET SCAN
-      # ==========================================
-
       - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v2
 
-      # ==========================================
       # 3. DEPENDENCY INSTALL
-      # ==========================================
-
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -50,10 +41,7 @@ jobs:
       - name: Download Dependencies
         run: mvn dependency:resolve
 
-      # ==========================================
       # 4. SCA (OWASP)
-      # ==========================================
-
       - name: Run OWASP Dependency Check
         run: mvn dependency-check:check
 
@@ -70,7 +58,8 @@ jobs:
             target/dependency-check-report.html
             target/dependency-check-report.xml
             target/dependency-check-report.json
-    build-test-coverage:
+
+  build-test-coverage:
 
     needs: validation-and-security
 
@@ -78,17 +67,11 @@ jobs:
 
     steps:
 
-      # ==========================================
       # CHECKOUT CODE
-      # ==========================================
-
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # ==========================================
       # SETUP JAVA
-      # ==========================================
-
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -96,24 +79,15 @@ jobs:
           java-version: '17'
           cache: maven
 
-      # ==========================================
       # 5. COMPILE
-      # ==========================================
-
       - name: Compile Application
         run: mvn compile
 
-      # ==========================================
       # 6. UNIT TEST
-      # ==========================================
-
       - name: Run Unit Tests
         run: mvn test
 
-      # ==========================================
       # 7. CODE COVERAGE
-      # ==========================================
-
       - name: Generate JaCoCo Coverage Report
         run: mvn jacoco:report
 
