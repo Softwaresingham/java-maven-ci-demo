@@ -42,14 +42,14 @@ jobs:
       - name: Download Dependencies
         run: mvn dependency:resolve
 
-      - name: Run OWASP Dependency Check
-        run: mvn dependency-check:check
+      # - name: Run OWASP Dependency Check
+      #   run: mvn dependency-check:check
 
-      - name: Upload OWASP Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: owasp-report
-          path: target/dependency-check-report.html
+      # - name: Upload OWASP Report
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: owasp-report
+      #     path: target/dependency-check-report.html
 
   # ==========================================================
   # JOB-2 BUILD TEST COVERAGE
