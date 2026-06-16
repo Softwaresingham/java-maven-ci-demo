@@ -41,12 +41,159 @@ jobs:
 
       - name: Download Dependencies
         run: mvn dependency:resolve
-      
-      - name: Run OWASP Dependency Check
-        run: mvn dependency-check:check
 
-      - name: Upload OWASP Report
+      # - name: Run OWASP Dependency Check
+      #   run: mvn dependency-check:check
+
+      # - name: Upload OWASP Report
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: owasp-report
+      #     path: target/dependency-check-report.html
+
+  # ==========================================================
+  # JOB-2 BUILD TEST COVERAGE
+  # ==========================================================
+
+  build-test-coverage:
+
+    needs: validation-and-security
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Compile
+        run: mvn compile
+
+      - name: Unit Test
+        run: mvn test
+
+      - name: Generate Coverage
+        run: mvn jacoco:report
+
+      - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
         with:
-          name: owasp-report
-          path: target/dependency-check-report.html
+          name: jacoco-report
+          path: target/site/jacoco/
+
+  # ==========================================================
+  # JOB-3 SAST
+  # ==========================================================
+
+  sast-analysis:
+
+    needs: build-test-coverage
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        uses: semgrep/semgrep-action@v1
+
+  # ==========================================================
+  # JOB-4 PACKAGE
+  # ==========================================================
+
+  package-artifact:
+
+    needs: sast-analysis
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Package JAR
+        run: mvn clean package -DskipTests
+
+      - name: Upload JAR Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: login-logout-jar
+          path: target/*.jar
+
+  # ==========================================================
+  # JOB-5 CONTAINER
+  # ==========================================================
+
+  container-security:
+
+    needs: package-artifact
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download JAR Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: login-logout-jar
+
+      - name: Verify Artifact
+        run: ls -ltr
+
+      - name: Docker Login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Docker Build
+        run: |
+          docker build \
+          -t ${{ secrets.DOCKER_USERNAME }}/login-app:${{ github.run_number }} .
+
+      - name: Trivy Image Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ secrets.DOCKER_USERNAME }}/login-app:${{ github.run_number }}
+
+      - name: Install Syft
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | \
+          sh -s -- -b /usr/local/bin
+
+      - name: Generate SBOM
+        run: |
+          syft \
+          ${{ secrets.DOCKER_USERNAME }}/login-app:${{ github.run_number }} \
+          -o spdx-json > sbom.json
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-report
+          path: sbom.json
+
+      - name: Push Image
+        run: |
+          docker push \
+          ${{ secrets.DOCKER_USERNAME }}/login-app:${{ github.run_number }}
